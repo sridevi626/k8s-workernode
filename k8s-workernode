@@ -1,0 +1,49 @@
+1 on ubuntu
+-----------
+install docker
+2  sudo apt-get update
+3  sudo apt-get install ca-certificates curl gnupg lsb-release
+4  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+5  sudo apt-get update
+6  sudo apt-get install docker-ce docker-ce-cli containerd.io
+7  sudo docker run hello-world
+
+install k8s on worker-node
+-----------------------
+1  sudo apt install apt-transport-https curl
+2   curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+   echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" >> ~/kubernetes.list
+3  sudo mv ~/kubernetes.list /etc/apt/sources.list.d
+4  sudo apt update
+5  sudo apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+6  sudo swapoff -a 
+7  lsmod | grep br_netfilter
+8  sudo modprobe br_netfilter
+9  sudo sysctl net.bridge.bridge-nf-call-iptables=1
+10  sudo mkdir /etc/docker
+11  cat <<EOF | sudo tee /etc/docker/daemon.json
+{ "exec-opts": ["native.cgroupdriver=systemd"],
+"log-driver": "json-file",
+"log-opts":
+{ "max-size": "100m" },
+"storage-driver": "overlay2"
+}
+EOF
+12  sudo systemctl enable docker
+13  sudo systemctl daemon-reload
+14  sudo systemctl restart docker
+ 
+--
+15 sudo ufw allow 6443
+16  sudo ufw allow 6443/tcp
+   # Please copy below command from the output of pod network initialization
+17  sudo kubeadm join 127.0.0.188:6443 --token u81y02.91gqwkxx6rnhnnly --discovery-token-ca-cert-hash sha256:4482ab1c66bf17992ea02c1ba580f4af9f3ad4cc37b24f189db34d6e3fe95c2d
+ 
+
+
+
+
+
